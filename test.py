@@ -1,12 +1,18 @@
 import cv2
 import sys
+import torch
 from PySide6 import QtCore, QtGui, QtWidgets
+from ultralytics import YOLO
 
 class Test(QtWidgets.QMainWindow):
 
     def __init__(self):
         super(Test, self).__init__()
         self.resize(960, 700)
+
+        self.yolomodel = YOLO("yolov5s.pt")
+        #self.yolomodel = torch.hub.load('D:/yolov5/yolov5-7.0','custom','D:/yolov5/myproj/yolov5su.pt', source= 'local')
+
         self.title_wig = QtWidgets.QLabel(self)
         self.title_wig.setText("<h1> Title <\h1>")
         self.title_wig.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
@@ -33,9 +39,16 @@ class Test(QtWidgets.QMainWindow):
         
     def update_frame(self):
         success, frame = self.camera.read()
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        if success:
+            res = self.yolomodel(frame)
+            aframe = res[0].plot()
+        else:
+            pass # raise an error
+        frame = cv2.cvtColor(aframe, cv2.COLOR_BGR2RGB)
+
         image = QtGui.QImage(frame, frame.shape[1], frame.shape[0], QtGui.QImage.Format_RGB888)
         pixmap = QtGui.QPixmap.fromImage(image)
+        #pixmap = QtGui.QPixmap.fromImage(aframe)
         self.vid_label.setPixmap(pixmap)
         #while True:
         #    pass
